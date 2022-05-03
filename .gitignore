@@ -1,0 +1,18 @@
+# Created by .ignore support plugin (hsz.mobi)
+.devcontainer
+node_modules
+.idea
+.git
+_uploads
+_build
+.env
+.vscode
+NongoImage/data
+
+
+# Prettier code formatter
+.prettierrc.json
+docker/secrets
+config/fire_base
+MongoImage/data
+FileBank/models

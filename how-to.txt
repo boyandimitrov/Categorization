@@ -1,0 +1,2 @@
+// "API_Key" : "54F39463-64EE-40AB-8B4F-6A9B0C0F1360",
+docker-compose up -d --no-deps --build python

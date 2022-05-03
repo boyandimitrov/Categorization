@@ -1,0 +1,258 @@
+[
+    {
+        "type" : "to_upper"
+    },
+    {
+        "type" : "split",
+        "regex" : "[\\,\\-\\!\\?\\.\\/\\'\\`\\_\\&\\(\\)]+"
+    },
+    {
+        "type" : "concatenate",
+        "matches" : [
+            {
+                "regex" : "RK 1",
+                "feature" : "K1"
+            },
+            {
+                "regex" : "PK 1",
+                "feature" : "K1"
+            },
+            {
+                "regex" : "K 1",
+                "feature" : "K1"
+            },
+            {
+                "regex" : "CAPITAL CALL",
+                "feature" : "CAPITALCALL"
+            },
+            {
+                "regex" : "SUBSCRIPTION AGREEMENT",
+                "feature" : "SUBSCRIPTION"
+            },
+            {
+                "regex" : "BOARD APPROVALS",
+                "feature" : "BOARDAPPROVAL"
+            },
+            {
+                "regex" : "INVESTMENT RECOMMENDATION",
+                "feature" : "REC"
+            }
+        ]
+    }, 
+    {
+        "type" : "replacement_lists",
+        "matches" : [
+            {
+                "from" : ["DOC", "DOCX", "PDF", "TXT"],
+                "feature" : "#TEXT"
+            },
+            {
+                "from" : ["HTM", "HTML", "MHT"],
+                "feature" : "#WEB"
+            },
+            {
+                "from" : ["XLS", "XLSX", "CSV"],
+                "feature" : "#TABULAR"
+            },
+            {
+                "from" : ["MSG", "EML"],
+                "feature" : "#EMAIL"
+            },
+            {
+                "from" : ["JPG", "JPEG", "PNG", "IMAGE001"],
+                "feature" : "#IMAGE"
+            }
+        ],
+        "default" : "#UNKNOWN_FILE"
+    },
+    {
+        "type" : "replace",
+        "matches" : [
+            {
+                "regex" : "\\b[1-2]?[0-9]?[0-9]?[0-9] [0-1]?[0-9] [0-3]?[0-9]\\b",
+                "feature" : "#DATE"
+            },
+            {
+                "regex" : "\\b[0-1]?[0-9] [0-3]?[0-9] [1-2]?[0-9]?[0-9]?[0-9]\\b",
+                "feature" : "#DATE"
+            }, 
+            {
+                "regex" : "\\b[1-2][0-9][0-9][0-9] [0-1][0-9]\\b",
+                "feature" : "#DATE"
+            },
+            {
+                "regex" : "\\b[0-1][0-9] [0-3][0-9]\\b",
+                "feature" : "#DATE"
+            }, 
+            {
+                "regex" : "\\b[1-2][0-9][0-9][0-9]\\b",
+                "feature" : "#YEAR"
+            }, 
+            {
+                "regex" : "\\bQUARTER\\b",
+                "feature" : "#QUATER"
+            }, 
+            {
+                "regex" : "\\bQUARTERLY\\b",
+                "feature" : "#QUARTER"
+            }, 
+            {
+                "regex" : "\\bQTRLY\\b",
+                "feature" : "#QUARTER"
+            }, 
+            {
+                "regex" : "\\Q[1-4]\\b",
+                "feature" : "#QUARTER"
+            }, 
+            {
+                "regex" : "\\b[1-4]Q[1-2][0-9]\\b",
+                "feature" : "#QUARTER"
+            }, 
+            {
+                "regex" : "\\b[1-4]Q\\b",
+                "feature" : "#QUARTER"
+            }, 
+            {
+                "regex" : "\\b[1-4]Q[1-2][0-9][0-9][0-9]\\b",
+                "feature" : "#QUARTER"
+            }, 
+            {
+                "regex" : "\\b[1-4]Q0\\b",
+                "feature" : "#QUARTER"
+            }, 
+            {
+                "regex" : "\\b[1-2][0-9][0-9][0-9]\\b",
+                "feature" : "#YEAR"
+            }, 
+            {
+                "regex" : "\\b[1-2][0-9][0-9][0-9]\\b",
+                "feature" : "#YEAR"
+            }, 
+            {
+                "regex" : "\\b[^#]YEAR\\b",
+                "feature" : "#YEAR"
+            }, 
+            {
+                "regex" : "\\b[^#]YR\\b",
+                "feature" : "#YEAR"
+            }, 
+            {
+                "regex" : "\\bFUND\\b",
+                "feature" : "#FUND"
+            }, 
+            {
+                "regex" : "(?=\\b[MCDXLVI]{1,6}\\b)M{0,4}(?:CM|CD|D?C{0,3})(?:XC|XL|L?X{0,3})(?:IX|IV|V?I{0,3})",
+                "feature" : "#ROMAN_NUMBER"
+            }
+        ]
+    },
+    {
+        "type" : "replace_from_file",
+        "file_path" : "./FileBank/features/nomenclature/corp_suffix.txt",
+        "feature" : "#CORP_SUFFIX"
+    },
+    {
+        "type" : "enrich_from_file",
+        "file_path" : "./FileBank/features/nomenclature/corp_common.txt",
+        "feature" : "#CORP_COMMON_WORD"
+    },
+    {
+        "type" : "enrich_from_file",
+        "file_path" : "./FileBank/features/nomenclature/en_first_names.txt",
+        "feature" : "#COMMON_FIRST_NAME"
+    },
+    {
+        "type" : "enrich_from_file",
+        "file_path" : "./FileBank/features/nomenclature/en_last_names.txt",
+        "feature" : "#COMMON_LAST_NAME"
+    },
+    {
+        "type" : "enrich_from_file",
+        "file_path" : "./FileBank/features/nomenclature/en_us_geo.txt",
+        "feature" : "#US_GEO"
+    },
+    {
+        "type" : "replacement_lists",
+        "matches" : [
+            {
+                "from" : ["K-1", "K1"],
+                "feature" : "#K1"
+            },
+            {
+                "from" : ["CAPITALCALL"],
+                "feature" : "#CAPITALCALL"
+            },
+            {
+                "from" : ["ACQUIRE", "ACQUISITION"],
+                "feature" : "#ACQUIRE"
+            },
+            {
+                "from" : ["ACCOUNTING", "ACCTNG"],
+                "feature" : "#ACCOUNTING"
+            },
+            {
+                "from" : ["INV", "INVESTING", "INVESTMENT"],
+                "feature" : "#INVESTMENT"
+            },
+            {
+                "from" : ["STMT", "STMTS", "STATEMENT", "STATEMENTS"],
+                "feature" : "#STATEMENT"
+            },
+            {
+                "from" : ["MGMT", "MANAGEMENT"],
+                "feature" : "#MANAGEMENT"
+            },
+            {
+                "from" : ["SUBAGRMT", "SUBSCRIPTION", "SUBSC"],
+                "feature" : "#SUBSCRIPTION"
+            },
+            {
+                "from" : ["UNFUNDED", "RPT", "REPORT"],
+                "feature" : "#REPORT"
+            },
+            {
+                "from" : ["ORG", "ORGANIZATION"],
+                "feature" : "#ORGANIZATION"
+            },
+            {
+                "from" : ["BOARDAPPROVAL", "APPROVAL", "RECOMMENDATION", "REC"],
+                "feature" : "#BOARD_ACTIONS"
+            }
+        ]
+    },
+    {
+        "type" : "replacement_lists",
+        "matches" : [
+            {
+                "from" : ["WITH", "OF", "THE", "TO", "INC", "BY", "OR", "AND", "COPY", "1", "FROM"],
+                "feature" : ""
+            }
+        ]
+    },
+    {
+        "type" : "enrichment_lists",
+        "matches" : [
+            {
+                "from" : ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOMBER", "NOVEMBER", "DECEMBER", "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC", "MONTH", "MONTHLY", "MONTHLU"],
+                "feature" : "#MONTH"
+            },
+            {
+                "from" : ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY", "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN", "WEEK", "WEEKLY"],
+                "feature" : "#WEEK"
+            }
+        ]
+    }, 
+    {
+        "type" : "replace",
+        "matches" : [
+            {
+                "regex" : "\\b[0-1][0-9] [1-2][0-9]\\b",
+                "feature" : "#MONTH"
+            },
+            {
+                "regex" : "\\b[0-1][0-9] [1-2][0-9][0-9][0-9]\\b",
+                "feature" : "#MONTH"
+            }
+        ]
+    }
+]

@@ -1,0 +1,34 @@
+WARNING:werkzeug: * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
+INFO:werkzeug: * Running on http://10.1.2.191:3310/ (Press CTRL+C to quit)
+DEBUG:root:62694cad0679770da2b6175e
+DEBUG:root:./FileBank/models/training/62694cad0679770da2b6175e.csv
+DEBUG:root:After read
+INFO:werkzeug:127.0.0.1 - - [28/Apr/2022 11:17:04] "[35m[1mPOST /train HTTP/1.1[0m" 500 -
+WARNING:werkzeug: * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
+INFO:werkzeug: * Running on http://10.1.2.191:3310/ (Press CTRL+C to quit)
+DEBUG:root:62694cad0679770da2b6175e
+DEBUG:root:./FileBank/models/training/62694cad0679770da2b6175e.csv
+DEBUG:root:After read
+INFO:werkzeug:127.0.0.1 - - [28/Apr/2022 11:18:31] "[35m[1mPOST /train HTTP/1.1[0m" 500 -
+DEBUG:root:62694cad0679770da2b6175e
+DEBUG:root:./FileBank/models/training/62694cad0679770da2b6175e.csv
+DEBUG:root:After read
+INFO:werkzeug:127.0.0.1 - - [28/Apr/2022 11:30:54] "[35m[1mPOST /train HTTP/1.1[0m" 500 -
+DEBUG:root:62694cad0679770da2b6175e
+DEBUG:root:./FileBank/models/training/62694cad0679770da2b6175e.csv
+DEBUG:root:After read
+INFO:werkzeug:127.0.0.1 - - [28/Apr/2022 11:31:15] "[35m[1mPOST /train HTTP/1.1[0m" 500 -
+DEBUG:root:62694cad0679770da2b6175e
+DEBUG:root:./FileBank/models/training/62694cad0679770da2b6175e.csv
+DEBUG:root:After read
+WARNING:werkzeug: * Running on all addresses.
+   WARNING: This is a development server. Do not use it in a production deployment.
+INFO:werkzeug: * Running on http://10.1.2.191:3310/ (Press CTRL+C to quit)
+DEBUG:root:62694cad0679770da2b6175e
+DEBUG:root:./FileBank/models/training/62694cad0679770da2b6175e.csv
+DEBUG:root:After read
+DEBUG:root:compression ready
+DEBUG:root:response ready
+INFO:werkzeug:127.0.0.1 - - [28/Apr/2022 13:17:28] "POST /train HTTP/1.1" 200 -

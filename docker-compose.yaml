@@ -1,0 +1,25 @@
+version: '3'
+services:
+    db:
+        image: mongo:latest
+        ports:
+            - '27017:27017'
+        container_name: db
+        volumes: 
+            - ./MongoImage/init-mongo-user.js:/docker-entrypoint-initdb.d/init-mongo-user.js:ro
+            - ./MongoImage/data:/data/db
+    python:
+        build:
+            context: ./pyserver
+            dockerfile: Dockerfile
+        deploy:
+            replicas: 1
+            resources:
+                limits:
+                    cpus: "0.2"
+                    memory: 1G
+        ports:
+            - '3311:5000'
+        volumes:
+            - ./FileBank/models/training:/app/FileBank/models/training
+            - ./FileBank/models/trained:/app/FileBank/models/trained            
