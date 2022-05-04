@@ -6,6 +6,7 @@ node_modules
 _uploads
 _build
 .env
+docker.env
 .vscode
 NongoImage/data
 

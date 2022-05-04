@@ -8,8 +8,7 @@ services:
         volumes: 
             - ./MongoImage/init-mongo-user.js:/docker-entrypoint-initdb.d/init-mongo-user.js:ro
             - ./MongoImage/data:/data/db
-    ai:
-        restart: always
+    python:
         build:
             context: ./pyserver
             dockerfile: Dockerfile
@@ -19,26 +18,9 @@ services:
                 limits:
                     cpus: "0.2"
                     memory: 1G
-        expose:
-            - '5000'
-        container_name: ai            
+        ports:
+            - '3311:5000'
+        container_name: python            
         volumes:
             - ./FileBank/models/training:/app/FileBank/models/training
             - ./FileBank/models/trained:/app/FileBank/models/trained            
-    app:
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile
-        env_file: config/docker.env
-        ports: 
-            - '3100:3030'
-        depends_on:
-            - "db"            
-            - "ai"
-        links:
-            - "db"            
-            - "ai"
-        volumes:
-            - ./FileBank/models/training:/usr/src/app/FileBank/models/training
-            - ./FileBank/models/trained:/usr/src/app/FileBank/models/trained            

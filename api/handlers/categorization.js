@@ -57,6 +57,8 @@ const add_training_data_email = async(data, attachment) => {
 }
 
 const train = async (data) => {
+    await ai_proxy.test();
+
     const domain = await host.db_service.get_domain(data);
     if ( ! domain ) {
         return errors.db_error('Domain is not registered!');
@@ -64,12 +66,16 @@ const train = async (data) => {
 
     await host.db_service.update_post_train_domain(domain, {training_status: TrainingStatus.Pending});
 
+    console.log('train');
+
     let train_task = async (data) => { 
         const child = fork('./app_child.js');
         child.send(data);
         child.on('message', data => {
-            if ( data && data.err) {
+            console.log('data received', data);
+            if ( data && data.error) {
                 console.error(data.err);
+                return data;
             }
             else {
                 console.log('tenant is trained.', data)
@@ -77,7 +83,7 @@ const train = async (data) => {
         });
     }
 
-    host.queue_service.add_task(train_task, data)
+    host.queue_service.add_task(train_task, data);
 }
 
 let get_training_status = async(data) => {

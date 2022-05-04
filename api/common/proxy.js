@@ -1,6 +1,21 @@
 const axios = require('axios');
 const form_data = require('form-data');
 
+let test = async () => {
+    axios.get(`${process.env.AI_URL}companies`)
+    .then(function (response) {
+      // handle success
+      console.log(response);
+    })
+    .catch(function (error) {
+      // handle error
+      console.log(error);
+    })
+    .then(function () {
+      // always executed
+    });    
+}
+
 let proxy_call = async(segment, unique_id, data, options) => 
     new Promise((resolve, reject) => {
         const form = new form_data();
@@ -44,5 +59,5 @@ let proxy_call = async(segment, unique_id, data, options) =>
     });
 
 module.exports = {
-    proxy_call
+    test, proxy_call
 }

@@ -15,6 +15,15 @@ const train = async(data) => {
     }
 
     let training_set = await h.db_service.get_training_data(data);
+    console.log('training_set count', (training_set || []).length)
+    if ( ! training_set || !training_set.length ) {
+        h.db_service.update_post_train_domain(domain, {
+            training_status: TrainingStatus.Failed
+        }) 
+    
+        return errors.db_error('There is no domain data!');
+    }
+
 
     const options = domain.options || {};
 
@@ -26,6 +35,7 @@ const train = async(data) => {
 
     await fe.save_to_csv(model, domain._id);
 
+    console.log('call train', domain._id, domain.options);
     let response = await ai_proxy.proxy_call('train', domain._id, {}, {options:domain.options});
 
     let json = JSON.parse(response);
@@ -47,8 +57,14 @@ const train = async(data) => {
 
 process.on('message', async(data) => {
     try {
-        const top_features = await train(data);
-        process.send(data);
+        const result = await train(data);
+        console.log('on message', result);
+        if ( result.error ) {
+            process.send(result);
+        }
+        else {
+            process.send(data);
+        }
     }
     catch(e) {
         process.send({err:e.toString()});

@@ -8,17 +8,16 @@ let QueueService = class {
 
     init () {
         this.q.on('success', function (result, job) {
-            console.log('job finished processing:', job.toString().replace(/\n/g, ''))
-            console.log('The result is:', result)
+            //console.log('job finished processing:', job.toString().replace(/\n/g, ''))
+            console.log('job finished processing:')
         })
     }
 
-    add_task(func, ...theArgs) {
+    add_task (func, ...theArgs) {
         this.q.push(async function(cb) {
-            console.log('execute task');
+            console.log('execute task', func, theArgs);
             const result = await func(...theArgs);
-            console.log('opa', result)
-            cb(null, result);
+            cb(result);
         })
     }
 }

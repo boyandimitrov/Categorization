@@ -1,4 +1,5 @@
-require('./api/global_init')
+//require('./api/global_init')
+require('dotenv').config();
 
 const express       = require('express');
 const bodyParser    = require('body-parser');
