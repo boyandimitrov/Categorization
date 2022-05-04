@@ -1,10 +1,10 @@
 version: '3'
 services:
-    db:
+    storage:
         image: mongo:latest
         ports:
-            - '27017:27017'
-        container_name: db
+            - '27018:27017'
+        container_name: storage
         volumes: 
             - ./MongoImage/init-mongo-user.js:/docker-entrypoint-initdb.d/init-mongo-user.js:ro
             - ./MongoImage/data:/data/db
@@ -34,10 +34,10 @@ services:
         ports: 
             - '3100:3030'
         depends_on:
-            - "db"            
+            - "storage"            
             - "ai"
         links:
-            - "db"            
+            - "storage"            
             - "ai"
         volumes:
             - ./FileBank/models/training:/usr/src/app/FileBank/models/training
