@@ -95,26 +95,63 @@ Dynamo Categorization is located in DynamoCategorization folder and consists of 
 
 ## Docker
 
-Dynamo Categorization relies on 2 docker containers. 
+Dynamo Categorization relies on 3 docker containers. 
 
-- Official mongodb container
+- storage - Official mongodb container
 
-By default mongo is running on port 27017 and docker exposes the default port 
+By default mongo is running on port 27017. Docker exposes port 27018 so it can coexist with another mongodb instance on the same machine.
 
-- Custom created container running python server and machine learning logic
+- ai - Custom created container running python server and machine learning logic
 
-Python machine learning API is running locally on port 3010. Flask is used on port 5000
-when the API is started in a container. Docker compose remaps port 3311 to communicate with python backend.
+Python machine learning API is running locally on port 3010. Flask is used on port 5000.
+When the API is started in a container for testing purposes docker compose remaps port 3311 to communicate with AI.
 
-To start both containers
+- app - Nodejs container that exposes the API. 
+
+Swagger is used to simplify building and consuming the API. 
+
+## Docker-compose
+
+Docker compose is used for containers orchestration. There are two yaml files. 
+
+- docker-compose-test.yaml - this one is used for testing. It runs only storage and ai container, while node app must be started manually
+- docker-compose.yaml - this one is used in production. It creates all 3 contianers. Nginx is used for proxy the calls.
+
+Set of commands used for working with compose follows
+
+To stop all containers
+```sh
+docker compose down
+```
+
+To start all containers
 ```sh
 docker compose up
 ```
 
-To rebuild python container
+To rebuild specific container
 ```sh
-docker-compose build python
+docker-compose build ai
 ```
+
+To rebuild all containers
+```sh
+docker-compose up --build
+```
+
+## build-categorization.sh
+
+A simple script that automates deployment is created for linux environment. 
+
+```sh
+sudo service monit stop
+cd ~/Categorization && sudo docker-compose down
+cd ~/Categorization && git reset --hard origin/main
+cd ~/Categorization && git pull origin main
+cd ~/Categorization && sudo docker-compose up --build -d
+sudo service monit start
+```
+
 
 ## node.js
 
@@ -126,9 +163,21 @@ curl --location --request GET 'http://localhost:3030/predict?unique_id=MIT@HTTP:
 --data-raw ''
 ```
 
+node.js container is preconfigured to run on port 3100. So to execute commands against node.js container all commands needs to substitute the port in the above command.
+
+## Deployment
+
+App is currently available on prometheus server in Dynamo Environment hosted in Boston. Detailed information about commands can be found on [swaggerhub]. Nginx is configurred to use the official url + segment cat. So the commands has the form 
+
+```sh
+curl --location --request GET 'https://prometheus.dynamosoftware.com/cat/get_training_status?unique_id=MIT@HTTP://MITIMCO_STAGING/&domain=activity' \
+--header 'Authorization: Bearer 54F39463-64EE-40AB-8B4F-6A9B0C0F1360' \
+--data-raw ''
+```
+
 ## Testing
 
-Once both containers are up and running execute to populate the database with a test dataset
+A starting dataset is included in the project. It can be activated running the following command
 
 ```sh
 npm test 
@@ -152,6 +201,7 @@ Licensed by Dynamo Software
    [node.js]: <http://nodejs.org>
    [@tjholowaychuk]: <http://twitter.com/tjholowaychuk>
    [express]: <http://expressjs.com>
+   [swaggerhub]: <https://app.swaggerhub.com/apis/boyan.dimitrov/CatAPI/0.0.3>
    
    [PlDb]: <https://github.com/joemccann/dillinger/tree/master/plugins/dropbox/README.md>
    [PlGh]: <https://github.com/joemccann/dillinger/tree/master/plugins/github/README.md>
