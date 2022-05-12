@@ -57,8 +57,6 @@ const add_training_data_email = async(data, attachment) => {
 }
 
 const train = async (data) => {
-    await ai_proxy.test();
-
     const domain = await host.db_service.get_domain(data);
     if ( ! domain ) {
         return errors.db_error('Domain is not registered!');
@@ -66,24 +64,15 @@ const train = async (data) => {
 
     await host.db_service.update_post_train_domain(domain, {training_status: TrainingStatus.Pending});
 
-    console.log('train');
-
     let train_task = async (data) => { 
         const child = fork('./app_child.js');
         child.send(data);
         child.on('message', data => {
-            console.log('data received', data);
-            if ( data && data.error) {
-                console.error(data.err);
-                return data;
-            }
-            else {
-                console.log('tenant is trained.', data)
-            }
+            console.log('tenant is trained.', data)
         });
     }
 
-    host.queue_service.add_task(train_task, data);
+    host.queue_service.add_task(train_task, data)
 }
 
 let get_training_status = async(data) => {
@@ -99,6 +88,31 @@ let get_training_status = async(data) => {
         console.log(e);
     }
 };
+
+const alter_boost = async (data) => {
+    const domain = await host.db_service.get_domain(data);
+    if ( ! domain ) {
+        return errors.db_error('Domain is not registered!');
+    }
+
+    let existing_boosts = domain.boosts || {};
+    let new_boosts = data.boosts || [];
+    
+    for (let i=0; i < new_boosts.length; i++) {
+        let b = new_boosts[i] || {};
+
+        if ( existing_boosts[b.term] ) {
+            if ( b.clear ) {
+                delete existing_boosts[b.term];
+                continue;
+            }
+        }
+        
+        existing_boosts[b.term] = { ...b}
+    }
+
+    await host.db_service.update_post_train_domain(domain, {boosts: existing_boosts});
+}
 
 const get_model = (domain, training_set) => {
     const options = domain.options || {};
@@ -136,6 +150,40 @@ const predict = async (data) => {
 
 }
 
+const predict_file = async (file, data) => {
+    const domain = await host.db_service.get_domain(data);
+    if ( ! domain ) {
+        return errors.db_error('Domain is not registered!');
+    }
+
+    const content = await file.get_content(file, data);
+
+    data.email_to = data.email_to && data.email_to.length ? data.email_to.join(";") : data.email_to || "";
+    let values = Object.keys(obj).map(key => obj[key]);
+    values.push(content);
+    let concatenated = values.join(" ");
+
+    data.features = await fe.process(domain, concatenated);
+
+    let model = get_model(domain, [data]);
+
+    let response = await ai_proxy.proxy_call('predict_proba', domain._id, {x_test : model}, {})
+
+    let json = JSON.parse(response);
+
+    let cats = json.indexes[0];
+    let result = [];
+    for ( let key in cats ) {
+        if ( cats[key] > 0) {
+            result.push({
+                category: domain.options.categories[parseInt(key)],
+                proba: cats[key].toFixed(2) 
+            })
+        }
+    }
+    return {categories : result};
+}
+
 let confusion_matrix = async(data) => {
     try {
         const domain = await host.db_service.get_domain(data);
@@ -170,5 +218,5 @@ let evaluate = async(data) => {
 };
 
 module.exports = {
-    create, configure_domain, add_training_data, add_training_data_attachment, add_training_data_email, train, get_training_status, predict, confusion_matrix, evaluate
+    create, configure_domain, add_training_data, add_training_data_attachment, add_training_data_email, train, get_training_status, alter_boost, predict, predict_file, confusion_matrix, evaluate
 }

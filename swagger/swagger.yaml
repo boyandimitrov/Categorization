@@ -335,26 +335,32 @@ paths:
             $ref: "#/definitions/ErrorResponse"
   /predict_document:
     x-swagger-router-controller: cat_controller
-    get:
+    post:
       security:
         - authorization: []
       tags:
-        - public
-      description: Check status of training
+      - public
+      description: Add training data for document with its attachment
       operationId: predict_document
+      consumes:
+        - multipart/form-data
       parameters:
-        - name: unique_id
-          in: query
-          type: string
-          required: true
-        - name: domain
-          in: query
-          type: string
-          required: true
-        - name: body
-          in: query
-          type: string
-          required: true
+        - in: formData
+          name: attachment
+          description: The attachment to upload
+          type: file    
+        - in: formData
+          name: unique_id
+          type: string    
+        - in: formData
+          name: domain
+          type: string    
+        - in: formData
+          name: document_id
+          type: string    
+        - in: formData
+          name: title
+          type: string    
       responses:
         "200":
           description: Success
@@ -366,26 +372,43 @@ paths:
             $ref: "#/definitions/ErrorResponse"
   /predict_email:
     x-swagger-router-controller: cat_controller
-    get:
+    post:
       security:
         - authorization: []
       tags:
-        - public
-      description: Check status of training
+      - public
+      description: Add training data for document with its attachment
       operationId: predict_email
+      consumes:
+        - multipart/form-data
       parameters:
-        - name: unique_id
-          in: query
-          type: string
-          required: true
-        - name: domain
-          in: query
-          type: string
-          required: true
-        - name: email_body
-          in: query
-          type: string
-          required: true
+        - in: formData
+          name: attachment
+          description: The attachment to upload
+          type: file    
+        - in: formData
+          name: unique_id
+          type: string    
+        - in: formData
+          name: domain
+          type: string    
+        - in: formData
+          name: document_id
+          type: string    
+        - in: formData
+          name: email_subject
+          type: string    
+        - in: formData
+          name: email_body
+          type: string    
+        - in: formData
+          name: email_to
+          type: array
+          items:
+            type: string    
+        - in: formData
+          name: email_from
+          type: string    
       responses:
         "200":
           description: Success
@@ -474,7 +497,29 @@ paths:
           description: Error
           schema:
             $ref: "#/definitions/ErrorResponse"
-# complex objects have schema definitions
+  /alter_boost:
+    x-swagger-router-controller: cat_controller
+    post:
+      tags:
+      - public
+      description: maps specific word to specific categorry and increases the confidence with provided threshold
+      operationId: alter_boost
+      parameters:
+        - name: data
+          schema:
+            $ref: "#/definitions/BoostData"
+          description: data necesseary to execute
+          in: body
+          required: true
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/SuccessResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
 definitions:
   TenantData:
     type: object
@@ -485,6 +530,19 @@ definitions:
       human_readable:
         type: string
         description: human readable tenant name, for visualization in graphics
+  BoostData:
+    type: object
+    properties:
+      unique_id:
+        type: string
+      domain:
+        type: string
+        description: domain give possibilities to train several models for any tenant, can be used for categorizing similar emtities like activity for example
+      boosts:
+        type: array
+        items:
+          type: object
+          description: array of objects containing ( term, category to be boosted, min_threshold and boost number). in object clear property removes an existing boost
   DocumentData:
     type: object
     properties:
