@@ -3,7 +3,7 @@
 node_modules
 .idea
 .git
-_uploads
+uploads
 _build
 .env
 docker.env
