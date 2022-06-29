@@ -133,6 +133,23 @@ let predict = async (req, res) => {
     }
 }
 
+let predict_top = async (req, res) => {
+    try {
+        let params = {
+            unique_id : req.swagger.params.unique_id.value,
+            domain : req.swagger.params.domain.value,
+            title : req.swagger.params.title.value,
+            threshold : req.swagger.params.threshold.value
+        }
+
+        let result = await categorize.predict_top(params);
+        return response_utils.send(res, result);
+    }
+    catch(e) {
+        return response_utils.send_error(res, errors.internal_server_error(e))
+    }
+}
+
 const predict_document = async (req, res) => {
     try {
         let file = req.files.attachment[0];
@@ -164,6 +181,46 @@ const predict_email = async (req, res) => {
         }
 
         let result = await categorize.predict_file(file, params);
+        return response_utils.send(res, result);
+    }
+    catch(e) {
+        return response_utils.send_error(res, errors.internal_server_error(e))
+    }
+}
+
+const predict_top_document = async (req, res) => {
+    try {
+        let file = req.files.attachment[0];
+        
+        let params = {};
+        for ( let key in req.swagger.params ) {
+            if ( req.swagger.params[key].value ) {
+                params[key] = req.swagger.params[key].value;
+            }
+        }
+
+        let result = await categorize.predict_file(file, params);
+        result = categorize.prepare_top_response(result, params.threshold);
+        return response_utils.send(res, result);
+    }
+    catch(e) {
+        return response_utils.send_error(res, errors.internal_server_error(e))
+    }
+}
+
+const predict_top_email = async (req, res) => {
+    try {
+        let file = req.files.attachment[0];
+        
+        let params = {};
+        for ( let key in req.swagger.params ) {
+            if ( req.swagger.params[key].value ) {
+                params[key] = req.swagger.params[key].value;
+            }
+        }
+
+        let result = await categorize.predict_file(file, params);
+        result = categorize.prepare_top_response(result);
         return response_utils.send(res, result);
     }
     catch(e) {
@@ -206,5 +263,6 @@ module.exports = {
     add_training_data, add_training_data_attachment, add_training_data_email, 
     train, get_training_status, alter_boost, 
     predict, predict_document, predict_email,
+    predict_top, predict_top_document, predict_top_email,
     confusion_matrix, evaluate
 }

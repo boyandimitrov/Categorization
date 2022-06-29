@@ -10188,9 +10188,14 @@ const execute = async(item) => {
         data : data
       };
       
+      try {
       let response = await axios(config);
 
       return response.data;
+      }
+      catch (e) {
+          console.log(e);
+      }
 }
 
 let populate = new Promise(async(resolve, reject) => {

@@ -2,7 +2,7 @@ const { fork } = require('child_process');
 
 const errors = require("../common/errors");
 const ai_proxy = require('../common/proxy');
-const file = require('../common/file');
+const file_util = require('../common/file');
 const {TrainingStatus} = require("../common/consts");
 const fe = require("../features/extraction");
 const matrix = require("../features/matrix");
@@ -122,20 +122,16 @@ const get_model = (domain, training_set) => {
     return fe.prepare_training_set(training_set, features, options);
 }
 
-const predict = async (data) => {
-    const domain = await host.db_service.get_domain(data);
-    if ( ! domain ) {
-        return errors.db_error('Domain is not registered!');
-    }
-
-    data.features = await fe.process(domain, data.title);
-
+const get_predict_response = async(domain, data) => {
     let model = get_model(domain, [data]);
 
     let response = await ai_proxy.proxy_call('predict_proba', domain._id, {x_test : model}, {})
 
-    let json = JSON.parse(response);
+    return JSON.parse(response);
 
+}
+
+const get_categories = (domain, json) => {
     let cats = json.indexes[0];
     let result = [];
     for ( let key in cats ) {
@@ -146,8 +142,132 @@ const predict = async (data) => {
             })
         }
     }
+
+    return result;
+}
+
+let compiled_boosts = {};
+
+let boost_category = (categories, item) => {
+    categories = categories || [];
+    let boosted = false;
+    for (let i=0; i < categories.length; i++) {
+        if ( categories[i].category === item.category )  {
+            boosted = true;
+            categories[i].proba = parseFloat(categories[i].proba) * item.boost;
+
+            if ( categories[i].proba < item.min_threshold ) {
+                categories[i].proba = item.min_threshold;
+            }
+
+            if ( categories[i].proba > 1) {
+                categories[i].proba = 1;
+            }
+
+            categories[i].proba = categories[i].proba.toFixed(2);
+        }
+    }
+
+    if ( !boosted ) {
+        categories.push({
+            category : item.category,
+            proba : item.min_threshold
+        })
+    }
+
+    return categories;
+}
+
+let boost_categories = (title, categories, domain) => {
+    if ( domain.boosts) {
+        for (let key in domain.boosts) {
+            let boost = domain.boosts[key];
+            let boosts = [];
+            if ( key === "{{categories}}" ) {
+                boosts = domain.options.categories.map(cat => { return {
+                    term: cat.toUpperCase(),
+                    category : cat,
+                    boost : boost.boost,
+                    min_threshold : boost.min_threshold
+                }})
+            }
+            else {
+                boosts = [boost];
+            }
+
+            for (let i=0; i<boosts.length; i++) {
+                let boost_term = boosts[i].term.toUpperCase();
+                if ( !compiled_boosts[boost_term] ) {
+                    compiled_boosts[boost_term] = new RegExp(`${boost_term}`);
+                }
+                const re = compiled_boosts[boost_term];
+
+                if ( re.test(title.toUpperCase())) {
+                    categories = boost_category(categories, boosts[i]);
+                }
+            }
+
+        }
+    }
+
+    return categories;
+}
+
+const format_response = (categories, threshold) => {
+    if (threshold) {
+        categories = categories
+            .filter(item => {
+                let f = parseFloat(item.proba);
+                return f >= threshold;
+            })
+    }
+    console.log(categories);
+    categories = categories
+        .sort(function(a, b) {
+            if ( !a.proba || !b.proba) {
+                return 0;
+            } 
+
+            let af = parseFloat(a.proba);
+            let bf = parseFloat(b.proba);
+            return bf - af;
+        })
+
+    return categories;
+}
+
+const predict = async (data) => {
+    const domain = await host.db_service.get_domain(data);
+    if ( ! domain ) {
+        return errors.db_error('Domain is not registered!');
+    }
+
+    data.features = await fe.process(domain, data.title);
+    let json = await get_predict_response(domain, data);
+
+    let categories = get_categories(domain, json);
+    
+    let result = boost_categories(data.title, categories, domain);
+
+    result = format_response(result);
     return {categories : result};
 
+}
+
+const predict_top = async(data) => {
+    const domain = await host.db_service.get_domain(data);
+    if ( ! domain ) {
+        return errors.db_error('Domain is not registered!');
+    }
+
+    data.features = await fe.process(domain, data.title);
+    let json = await get_predict_response(domain, data);
+
+    let categories = get_categories(domain, json);
+
+    let result = boost_categories(data.title, categories, domain);
+
+    return prepare_top_response(result, data.threshold);
 }
 
 const predict_file = async (file, data) => {
@@ -156,32 +276,30 @@ const predict_file = async (file, data) => {
         return errors.db_error('Domain is not registered!');
     }
 
-    const content = await file.get_content(file, data);
+    const content = await file_util.get_content(file, data);
 
     data.email_to = data.email_to && data.email_to.length ? data.email_to.join(";") : data.email_to || "";
-    let values = Object.keys(obj).map(key => obj[key]);
+    let values = Object.keys(data).map(key => data[key]);
     values.push(content);
     let concatenated = values.join(" ");
 
     data.features = await fe.process(domain, concatenated);
 
-    let model = get_model(domain, [data]);
+    let json = await get_predict_response(domain, data);
 
-    let response = await ai_proxy.proxy_call('predict_proba', domain._id, {x_test : model}, {})
+    let categories = get_categories(domain, json);
 
-    let json = JSON.parse(response);
+    let result = boost_categories(data.title, categories, domain);
 
-    let cats = json.indexes[0];
-    let result = [];
-    for ( let key in cats ) {
-        if ( cats[key] > 0) {
-            result.push({
-                category: domain.options.categories[parseInt(key)],
-                proba: cats[key].toFixed(2) 
-            })
-        }
-    }
+    result = format_response(result, data.threshold);
     return {categories : result};
+}
+
+const prepare_top_response = ({categories}) => {
+    categories = categories
+        .map(item=> item.category);
+
+    return {top : (categories && categories.length ? categories[0] : "")};
 }
 
 let confusion_matrix = async(data) => {
@@ -218,5 +336,5 @@ let evaluate = async(data) => {
 };
 
 module.exports = {
-    create, configure_domain, add_training_data, add_training_data_attachment, add_training_data_email, train, get_training_status, alter_boost, predict, predict_file, confusion_matrix, evaluate
+    create, configure_domain, add_training_data, add_training_data_attachment, add_training_data_email, train, get_training_status, alter_boost, predict, predict_top, prepare_top_response, predict_file, confusion_matrix, evaluate
 }

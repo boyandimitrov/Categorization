@@ -333,6 +333,41 @@ paths:
           description: Error
           schema:
             $ref: "#/definitions/ErrorResponse"
+  /predict_top:
+    x-swagger-router-controller: cat_controller
+    get:
+      security:
+        - authorization: []
+      tags:
+        - public
+      description: Check status of training
+      operationId: predict_top
+      parameters:
+        - name: unique_id
+          in: query
+          type: string
+          required: true
+        - name: domain
+          in: query
+          type: string
+          required: true
+        - name: title
+          in: query
+          type: string
+          required: true
+        - name: threshold
+          in: query
+          type: string
+          required: true
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/PredictionTopResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
   /predict_document:
     x-swagger-router-controller: cat_controller
     post:
@@ -414,6 +449,97 @@ paths:
           description: Success
           schema:
             $ref: "#/definitions/PredictionResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /predict_top_document:
+    x-swagger-router-controller: cat_controller
+    post:
+      security:
+        - authorization: []
+      tags:
+      - public
+      description: Add training data for document with its attachment
+      operationId: predict_top_document
+      consumes:
+        - multipart/form-data
+      parameters:
+        - in: formData
+          name: attachment
+          description: The attachment to upload
+          type: file    
+        - in: formData
+          name: unique_id
+          type: string    
+        - in: formData
+          name: domain
+          type: string    
+        - in: formData
+          name: document_id
+          type: string    
+        - in: formData
+          name: title
+          type: string    
+        - in: formData
+          name: threshold
+          type: string    
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/PredictionTopResponse"
+        default:
+          description: Error
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /predict_top_email:
+    x-swagger-router-controller: cat_controller
+    post:
+      security:
+        - authorization: []
+      tags:
+      - public
+      description: Add training data for document with its attachment
+      operationId: predict_top_email
+      consumes:
+        - multipart/form-data
+      parameters:
+        - in: formData
+          name: attachment
+          description: The attachment to upload
+          type: file    
+        - in: formData
+          name: unique_id
+          type: string    
+        - in: formData
+          name: domain
+          type: string    
+        - in: formData
+          name: document_id
+          type: string    
+        - in: formData
+          name: email_subject
+          type: string    
+        - in: formData
+          name: email_body
+          type: string    
+        - in: formData
+          name: email_to
+          type: array
+          items:
+            type: string    
+        - in: formData
+          name: email_from
+          type: string    
+        - in: formData
+          name: threshold
+          type: string    
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: "#/definitions/PredictionTopResponse"
         default:
           description: Error
           schema:
@@ -567,7 +693,7 @@ definitions:
   DomainData:
     type: object
     properties:
-      tenant_uid:
+      unique_id:
         type: string
       domain:
         type: string
@@ -599,6 +725,15 @@ definitions:
             type: array
             items:
               type: string
+      error:
+        $ref: "#/definitions/ErrorResponse"
+  PredictionTopResponse:
+    properties:
+      result:
+        type: object
+        properties:
+          tags:
+            type: string
       error:
         $ref: "#/definitions/ErrorResponse"
   ConfusionMatrixResponse:
