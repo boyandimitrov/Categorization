@@ -267,7 +267,7 @@ const predict_top = async(data) => {
 
     let result = boost_categories(data.title, categories, domain);
 
-    return prepare_top_response(result, data.threshold);
+    return prepare_top_response({categories:result}, data.threshold);
 }
 
 const predict_file = async (file, data) => {
@@ -296,7 +296,7 @@ const predict_file = async (file, data) => {
 }
 
 const prepare_top_response = ({categories}) => {
-    categories = categories
+    categories = (categories || [])
         .map(item=> item.category);
 
     return {top : (categories && categories.length ? categories[0] : "")};
